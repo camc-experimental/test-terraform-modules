@@ -26,6 +26,9 @@ variable "domain" {}
 variable "cores" {}
 variable "memory" {}
 variable "disk1" {}
+variable "private_network_only" {
+  default = false
+}
 variable "ssh_user" {
   default = "root"
 }
@@ -49,7 +52,7 @@ resource "ibmcloud_infra_virtual_guest" "softlayer_virtual_guest" {
   datacenter               = "${var.datacenter}"
   network_speed            = 10
   hourly_billing           = true
-  private_network_only     = false
+  private_network_only     = "${var.private_network_only}"
   cores                    = "${var.cores}"
   memory                   = "${var.memory}"
   disks                    = ["${var.disk1}"]
