@@ -17,12 +17,12 @@ variable "network_name_prefix" {}
 
 variable "vpc_cidr" {
   description = "CIDR for the whole VPC"
-  default     = "10.0.0.0/16"
+  default     = "172.16.0.0/16"
 }
 
 variable "private_subnet_cidr" {
   description = "CIDR for the default subnet"
-  default     = "10.0.1.0/24"
+  default     = "172.16.1.0/24"
 }
 
 resource "aws_vpc" "default" {
