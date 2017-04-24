@@ -20,7 +20,11 @@ set -o pipefail
 
 LOGFILE="/var/log/install_nodejs.log"
 
-DBADDRESS=${variable_1}
+TEMP_SSH_KEY=${variable_1}
+DBADDRESS=${variable_2}
+
+echo "---Add temp public key for ssh---" | tee -a $LOGFILE 2>&1
+echo $TEMP_SSH_KEY | tee -a .ssh/authorized_keys                                                                  >> $LOGFILE 2>&1 || { echo "---Failed to add temp public key for ssh---" | tee -a $LOGFILE; exit 1; }
 
 echo "---Install nodejs---" | tee -a $LOGFILE 2>&1
 curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -                                                    >> $LOGFILE 2>&1 || { echo "---Failed to run node script to set up repo---" | tee -a $LOGFILE; exit 1; }
