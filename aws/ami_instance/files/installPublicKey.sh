@@ -20,7 +20,7 @@ set -o pipefail
 
 LOGFILE="/var/log/install_publick_key.log"
 
-TEMP_SSH_KEY=${variable_1}
+TEMP_SSH_KEY="${variable_1}"
 SSH_USER=${variable_2}
 
 echo "---Add customer public key for ssh---" | tee -a $LOGFILE 2>&1
