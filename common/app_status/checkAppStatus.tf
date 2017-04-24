@@ -53,7 +53,7 @@ resource "null_resource" "default"{
     inline = [
       "chmod +x checkHttp.sh",
       "bash checkHttp.sh ${var.module_script_variables}",    
-      "bash -c 'if [ \"${var.remove_temp_private_key}\" == \"true\" ] ; then KEY=$(echo \"${var.temp_public_key}\" | cut -c 9-); cd /root/.ssh; grep -v $KEY authorized_keys > authorized_keys.new; mv -f authorized_keys.new authorized_keys; chmod 600 authorized_keys; fi'",
+      "bash -c 'if [ \"${var.remove_temp_private_key}\" == \"true\" ] ; then KEY=$(echo \"${var.temp_public_key}\" | cut -c 9-); cd /\"${var.ssh_user}\"/.ssh; grep -v $KEY authorized_keys > authorized_keys.new; mv -f authorized_keys.new authorized_keys; chmod 600 authorized_keys; fi'",
       "${var.module_custom_commands}"
     ]
   }
