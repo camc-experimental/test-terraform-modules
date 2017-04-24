@@ -16,6 +16,9 @@
 variable "ssh_user" {
   default = "root"
 }
+variable "ssh_authorized_dir" {
+  default = "root"
+}
 variable "temp_private_key" {}
 variable "temp_public_key" {}
 variable "remote_host" {}
