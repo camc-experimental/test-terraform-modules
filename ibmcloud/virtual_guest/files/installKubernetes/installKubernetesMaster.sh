@@ -117,7 +117,7 @@ echo "---install the kubernetes-dashboard---" | tee -a $LOGFILE 2>&1
 
 curl -O https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml                                    >> $LOGFILE 2>&1 || { echo "---Failed to download kubernetes dashboard yaml---" | tee -a $LOGFILE; exit 1; }
 sed -i "s/# - --apiserver-host=http:\/\/my-address:port/- --apiserver-host=http:\/\/$MYIP:8080/g" kubernetes-dashboard.yaml    >> $LOGFILE 2>&1 || { echo "---Failed to update kubernetes dashboard yaml---" | tee -a $LOGFILE; exit 1; }
-sed -i "s/v1.6.0/v1.5.1/g" kubernetes-dashboard.yaml                                                                          >> $LOGFILE 2>&1 || { echo "---Failed to update kubernetes dashboard yaml---" | tee -a $LOGFILE; exit 1; }
+#sed -i "s/v1.6.0/v1.5.1/g" kubernetes-dashboard.yaml                                                                          >> $LOGFILE 2>&1 || { echo "---Failed to update kubernetes dashboard yaml---" | tee -a $LOGFILE; exit 1; }
 
 kubectl create -f kubernetes-dashboard.yaml                                                                                    >> $LOGFILE 2>&1 || { echo "---Failed to install kubernetes dashboard---" | tee -a $LOGFILE; exit 1; } 
 echo "---kubernetes master node installed successfully---" | tee -a $LOGFILE 2>&1
