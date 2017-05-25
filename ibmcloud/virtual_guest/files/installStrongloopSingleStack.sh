@@ -81,7 +81,7 @@ PROJECT_NAME=sample
 SAMPLE_DIR=/root/$PROJECT_NAME
 SCRIPT_CREATE_PROJECT=createProject.sh
 
-cat << EOF > $SCRIPT_CREATE_PROJE
+cat << EOF > $SCRIPT_CREATE_PROJECT
 #!/usr/bin/expect
 set timeout 20
 spawn slc loopback --skip-install $PROJECT_NAME
