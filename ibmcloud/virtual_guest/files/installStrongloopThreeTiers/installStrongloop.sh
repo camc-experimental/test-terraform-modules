@@ -20,14 +20,9 @@ set -o pipefail
 
 LOGFILE="/var/log/install_strongloop_nodejs.log"
 
-#SAMPLE_URL=$1
-#MongoDB_Server=$2
-#DBUserPwd=$3
-#UseSystemCtl=$4
 MongoDB_Server=$1
 DBUserPwd=$2
 UseSystemCtl=$3
-
 
 #update
 
@@ -51,13 +46,6 @@ echo "---finish installing strongloop---" | tee -a $LOGFILE 2>&1
 #install sample application
 
 echo "---start installing sample application---" | tee -a $LOGFILE 2>&1 
-
-#download and untar application
-#yum install curl -y                                                                    >> $LOGFILE 2>&1 || { echo "---Failed to install curl---" | tee -a $LOGFILE; exit 1; }
-#SAMPLE_DIR=/root/sample
-#mkdir $SAMPLE_DIR                                                                                                                            
-#curl -k -o sample.tar.gz $SAMPLE_URL                                                   >> $LOGFILE 2>&1 || { echo "---Failed to download application tarball---" | tee -a $LOGFILE; exit 1; }
-#tar -xzvf sample.tar.gz -C $SAMPLE_DIR                                                 >> $LOGFILE 2>&1 || { echo "---Failed to untar the application---" | tee -a $LOGFILE; exit 1; }
 
 yum install expect -y                                                                   >> $LOGFILE 2>&1 || { echo "---Failed to install Expect---" | tee -a $LOGFILE; exit 1; }
 
@@ -141,11 +129,6 @@ sed -i -e "s/sampleUserPwd/$DBUserPwd/g" $DATA_SOURCE_FILE                      
 MODEL_CONFIG_FILE=server/model-config.json
 sed -i -e '/Todos/{n;d}' $MODEL_CONFIG_FILE                                             >> $LOGFILE 2>&1 || { echo "---Failed to update model-config.json---" | tee -a $LOGFILE; exit 1; }
 sed -i -e '/Todos/a\ \ \ \ "dataSource": "myMongoDB",' $MODEL_CONFIG_FILE               >> $LOGFILE 2>&1 || { echo "---Failed to update model-config.json---" | tee -a $LOGFILE; exit 1; }
-
-
-#start application
-#sed -i -e "s/mongodb-server/$MongoDB_Server/g" $SAMPLE_DIR/server/datasources.json     >> $LOGFILE 2>&1 || { echo "---Failed to configure datasource with mongodb server address---" | tee -a $LOGFILE; exit 1; }
-#sed -i -e "s/sampleUserPwd/$DBUserPwd/g" $SAMPLE_DIR/server/datasources.json           >> $LOGFILE 2>&1 || { echo "---Failed to configure datasource with mongo user password---" | tee -a $LOGFILE; exit 1; } 
 
 #make sample application as a service
 if [ "$UseSystemCtl" == "true" ]; then

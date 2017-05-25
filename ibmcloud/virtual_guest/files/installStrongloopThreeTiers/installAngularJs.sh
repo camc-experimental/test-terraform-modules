@@ -20,10 +20,6 @@ set -o pipefail
 
 LOGFILE="/var/log/install_angular_nodejs.log"
 
-#SAMPLE_URL=$1
-#STRONGLOOP_SERVER=$2
-#SAMPLE_APP_PORT=$3
-#UseSystemCtl=$4
 STRONGLOOP_SERVER=$1
 SAMPLE_APP_PORT=$2
 UseSystemCtl=$3
@@ -51,13 +47,6 @@ echo "---finish installing angularjs---" | tee -a $LOGFILE 2>&1
 #install sample application
 
 echo "---start installing sample application---" | tee -a $LOGFILE 2>&1 
-
-#download and untar application
-#yum install curl -y                                                        >> $LOGFILE 2>&1 || { echo "---Failed to install curl---" | tee -a $LOGFILE; exit 1; }
-#SAMPLE_DIR=/root/sample
-#mkdir $SAMPLE_DIR                                                                                                                            
-#curl -k -o sample.tar.gz $SAMPLE_URL                                       >> $LOGFILE 2>&1 || { echo "---Failed to download application tarball---" | tee -a $LOGFILE; exit 1; }
-#tar -xzvf sample.tar.gz -C $SAMPLE_DIR                                     >> $LOGFILE 2>&1 || { echo "---Failed to untar the application---" | tee -a $LOGFILE; exit 1; }
 
 #create project
 PROJECT_NAME=sample
