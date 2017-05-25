@@ -81,7 +81,7 @@ PROJECT_NAME=sample
 SAMPLE_DIR=/root/$PROJECT_NAME
 SCRIPT_CREATE_PROJECT=createProject.sh
 
-cat << EOF > $SCRIPT_CREATE_PROJECT                                                                                                          >> $LOGFILE 2>&1 || { echo "---Failed to create script to create project---" | tee -a $LOGFILE; exit 1; }
+cat << EOF > $SCRIPT_CREATE_PROJE
 #!/usr/bin/expect
 set timeout 20
 spawn slc loopback --skip-install $PROJECT_NAME
@@ -113,7 +113,7 @@ npm install                                                                     
 MODEL_NAME=Todos
 SCRIPT_CREATE_MODEL=createModel.sh
 
-cat << EOF > $SCRIPT_CREATE_MODEL                                                                                                           >> $LOGFILE 2>&1 || { echo "---Failed to create script to create model---" | tee -a $LOGFILE; exit 1; }
+cat << EOF > $SCRIPT_CREATE_MODEL
 #!/usr/bin/expect
 set timeout 20
 spawn slc loopback:model $MODEL_NAME
@@ -161,7 +161,7 @@ sed -i -e "/app = module.exports = loopback()/a var path = require('path');\napp
 
 #install packages in client side
 BOWERRC_FILE=.bowerrc
-cat << EOF > $BOWERRC_FILE                                                                                                                  >> $LOGFILE 2>&1 || { echo "---Failed to create .bowerrc---" | tee -a $LOGFILE; exit 1; }
+cat << EOF > $BOWERRC_FILE
 {
   "directory": "client/vendor"
 }
@@ -171,7 +171,7 @@ bower install angular angular-resource angular-ui-router bootstrap --allow-root 
 
 #add client files
 INDEX_HTML=client/index.html
-cat << EOF > $INDEX_HTML                                                                                                                    >> $LOGFILE 2>&1 || { echo "---Failed to create index.html---" | tee -a $LOGFILE; exit 1; }
+cat << EOF > $INDEX_HTML
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -207,7 +207,7 @@ EOF
 
 mkdir -p client/css
 CSS_FILE=client/css/style.css
-cat << EOF > $CSS_FILE                                                                                                                      >> $LOGFILE 2>&1 || { echo "---Failed to create style.css---" | tee -a $LOGFILE; exit 1; }
+cat << EOF > $CSS_FILE
 body {
  padding-top:50px;
 }
@@ -218,7 +218,7 @@ EOF
 
 mkdir -p client/js
 APP_JS_FILE=client/js/app.js
-cat << EOF > $APP_JS_FILE                                                                                                                   >> $LOGFILE 2>&1 || { echo "---Failed to create app.js---" | tee -a $LOGFILE; exit 1; }
+cat << EOF > $APP_JS_FILE
 'use strict';
 
 angular
@@ -240,7 +240,7 @@ EOF
 
 mkdir -p client/js/views
 VIEW_HTML=client/js/views/todo.html
-cat << EOF > $VIEW_HTML                                                                                                                     >> $LOGFILE 2>&1 || { echo "---Failed to create todo.html---" | tee -a $LOGFILE; exit 1; }
+cat << EOF > $VIEW_HTML
 <h1>Todo list</h1>
 <hr>
 <form name="todoForm" novalidate ng-submit="addTodo()">
@@ -267,7 +267,7 @@ EOF
 
 mkdir -p client/js/controllers
 CONTROLLER_JS_FILE=client/js/controllers/todo.js
-cat << EOF > $CONTROLLER_JS_FILE                                                                                                            >> $LOGFILE 2>&1 || { echo "---Failed to create todo.js---" | tee -a $LOGFILE; exit 1; }
+cat << EOF > $CONTROLLER_JS_FILE
 'use strict';
 
 angular
@@ -318,7 +318,7 @@ lb-ng $SERVER_JS_FILE $LB_SERVICE_JS_FILE                                       
 
 #make sample application as a service
 SAMPLE_APP_SERVICE_CONF=/etc/systemd/system/nodeserver.service
-cat << EOF > $SAMPLE_APP_SERVICE_CONF                                                                                                       >> $LOGFILE 2>&1 || { echo "---Failed to config the sample node service---" | tee -a $LOGFILE; exit 1; }
+cat << EOF > $SAMPLE_APP_SERVICE_CONF
 [Unit]
 Description=Node.js Example Server
 
