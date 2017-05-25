@@ -50,7 +50,7 @@ echo "---start installing sample application---" | tee -a $LOGFILE 2>&1
 
 #create project
 PROJECT_NAME=sample
-SAMPLE_DIR=/root/$PROJECT_NAME
+SAMPLE_DIR=$HOME/$PROJECT_NAME
 mkdir $SAMPLE_DIR
 
 cd $SAMPLE_DIR

@@ -78,7 +78,9 @@ yum install expect -y                                                           
 
 #create project
 PROJECT_NAME=sample
-SAMPLE_DIR=/root/$PROJECT_NAME
+SAMPLE_DIR=$HOME/$PROJECT_NAME
+
+cd $HOME
 SCRIPT_CREATE_PROJECT=createProject.sh
 
 cat << EOF > $SCRIPT_CREATE_PROJECT

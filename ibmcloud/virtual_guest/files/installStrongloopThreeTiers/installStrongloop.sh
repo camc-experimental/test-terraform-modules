@@ -51,7 +51,9 @@ yum install expect -y                                                           
 
 #create project
 PROJECT_NAME=sample
-SAMPLE_DIR=/root/$PROJECT_NAME
+SAMPLE_DIR=$HOME/$PROJECT_NAME
+
+cd $HOME
 SCRIPT_CREATE_PROJECT=createProject.sh
 
 cat << EOF > $SCRIPT_CREATE_PROJECT
@@ -76,7 +78,7 @@ chmod 755 $SCRIPT_CREATE_PROJECT                                                
 rm -f $SCRIPT_CREATE_PROJECT                                                            >> $LOGFILE 2>&1 || { echo "---Failed to remove script---" | tee -a $LOGFILE; exit 1; }
 
 #add dependency package 
-cd $PROJECT_NAME
+cd $SAMPLE_DIR
 sed -i -e '/loopback-datasource-juggler/a\ \ \ \ "loopback-connector-mongodb": "^1.18.0",' package.json    >> $LOGFILE 2>&1 || { echo "---Failed to add dependency for loopback-connector-mongo---" | tee -a $LOGFILE; exit 1; }
 
 #install packages in server side
@@ -123,7 +125,7 @@ rm -f $SCRIPT_CREATE_MODEL                                                      
 DATA_SOURCE_FILE=server/datasources.json
 sed -i -e 's/\ \ }/\ \ },/g' $DATA_SOURCE_FILE                                          >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
 sed -i -e '/\ \ },/a\ \ "myMongoDB": {\n\ \ \ \ "host": "mongodb-server",\n\ \ \ \ "port": 27017,\n\ \ \ \ "url": "mongodb://sampleUser:sampleUserPwd@mongodb-server:27017/admin",\n\ \ \ \ "database": "Todos",\n\ \ \ \ "password": "sampleUserPwd",\n\ \ \ \ "name": "myMongoDB",\n\ \ \ \ "user": "sampleUser",\n\ \ \ \ "connector": "mongodb"\n\ \ }' $DATA_SOURCE_FILE    >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
-sed -i -e "s/mongodb-server/$MongoDB_Server/g" $SAMPLE_DIR/server/datasources.json      >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
+sed -i -e "s/mongodb-server/$MongoDB_Server/g" $DATA_SOURCE_FILE                        >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
 sed -i -e "s/sampleUserPwd/$DBUserPwd/g" $DATA_SOURCE_FILE                              >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
 
 MODEL_CONFIG_FILE=server/model-config.json
