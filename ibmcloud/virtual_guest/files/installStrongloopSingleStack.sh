@@ -20,7 +20,7 @@ set -o pipefail
 
 LOGFILE="/var/log/install_mongodb_strongloop_angular_nodejs.log"
 
-SAMPLE_URL=$1
+#SAMPLE_URL=$1
 
 #update
 
