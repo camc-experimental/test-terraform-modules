@@ -35,9 +35,7 @@ variable "ssh_user" {
 variable "module_script_variables" {
   default = ""
 }
-variable "module_sample_application_url" {
-  default = ""
-}
+
 variable "module_custom_commands" {
   default = "sleep 1"
 }
@@ -77,7 +75,7 @@ resource "ibmcloud_infra_virtual_guest" "softlayer_virtual_guest" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x installation.sh",
-      "bash installation.sh ${var.module_sample_application_url} ${var.module_script_variables}",
+      "bash installation.sh ${var.module_script_variables}",
       "bash -c 'if [ \"${var.remove_temp_private_key}\" == \"true\" ] ; then KEY=$(echo \"${var.temp_public_key}\" | cut -c 9-); cd /root/.ssh; grep -v $KEY authorized_keys > authorized_keys.new; mv -f authorized_keys.new authorized_keys; chmod 600 authorized_keys; fi'",
       "${var.module_custom_commands}"
     ]
