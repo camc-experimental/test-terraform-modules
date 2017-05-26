@@ -20,9 +20,10 @@ set -o pipefail
 
 LOGFILE="/var/log/install_angular_nodejs.log"
 
-STRONGLOOP_SERVER=$1
-SAMPLE_APP_PORT=$2
-UseSystemCtl=$3
+SAMPLE_URL=$1
+STRONGLOOP_SERVER=$2
+SAMPLE_APP_PORT=$3
+UseSystemCtl=$4
 
 #update
 
@@ -53,11 +54,13 @@ PROJECT_NAME=sample
 SAMPLE_DIR=$HOME/$PROJECT_NAME
 mkdir $SAMPLE_DIR
 
-cd $SAMPLE_DIR
+if [ "$SAMPLE_URL" == "not_required" ]; then
 
-#make package.json
-PACKAGE_JSON=package.json
-cat << EOF > $PACKAGE_JSON
+	cd $SAMPLE_DIR
+
+	#make package.json
+	PACKAGE_JSON=package.json
+	cat << EOF > $PACKAGE_JSON
 {
   "name": "angular-sample",
   "version": "1.0.0",
@@ -77,10 +80,10 @@ cat << EOF > $PACKAGE_JSON
 }
 EOF
 
-#make server.js
-mkdir -p server
-SERVER_JS_FILE=server/server.js
-cat << EOF > $SERVER_JS_FILE
+	#make server.js
+	mkdir -p server
+	SERVER_JS_FILE=server/server.js
+	cat << EOF > $SERVER_JS_FILE
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
@@ -195,27 +198,27 @@ app.start = function() {
 console.log("App listening on port 8080");
 EOF
 
-sed -i -e "s/strongloop-server/$STRONGLOOP_SERVER/g" $SERVER_JS_FILE                     >> $LOGFILE 2>&1 || { echo "---Failed to configure server.js---" | tee -a $LOGFILE; exit 1; } 
-sed -i -e "s/8080/$SAMPLE_APP_PORT/g" $SERVER_JS_FILE                                    >> $LOGFILE 2>&1 || { echo "---Failed to change listening port in server.js---" | tee -a $LOGFILE; exit 1; } 
+	sed -i -e "s/strongloop-server/$STRONGLOOP_SERVER/g" $SERVER_JS_FILE                     >> $LOGFILE 2>&1 || { echo "---Failed to configure server.js---" | tee -a $LOGFILE; exit 1; } 
+	sed -i -e "s/8080/$SAMPLE_APP_PORT/g" $SERVER_JS_FILE                                    >> $LOGFILE 2>&1 || { echo "---Failed to change listening port in server.js---" | tee -a $LOGFILE; exit 1; } 
 
-#install packages in server side
-npm install                                                                              >> $LOGFILE 2>&1 || { echo "---Failed to install packages via npm---" | tee -a $LOGFILE; exit 1; }
+	#install packages in server side
+	npm install                                                                              >> $LOGFILE 2>&1 || { echo "---Failed to install packages via npm---" | tee -a $LOGFILE; exit 1; }
 
-#install packages in client side
-mkdir -p client
-BOWERRC_FILE=.bowerrc
-cat << EOF > $BOWERRC_FILE
+	#install packages in client side
+	mkdir -p client
+	BOWERRC_FILE=.bowerrc
+	cat << EOF > $BOWERRC_FILE
 {
   "directory": "client/vendor"
 }
 EOF
 
-yum install -y git                                                                       >> $LOGFILE 2>&1 || { echo "---Failed to install git---" | tee -a $LOGFILE; exit 1; }
-bower install angular angular-resource angular-ui-router bootstrap --allow-root          >> $LOGFILE 2>&1 || { echo "---Failed to install packages via bower---" | tee -a $LOGFILE; exit 1; }
-
-#add client files
-INDEX_HTML=client/index.html
-cat << EOF > $INDEX_HTML
+	yum install -y git                                                                       >> $LOGFILE 2>&1 || { echo "---Failed to install git---" | tee -a $LOGFILE; exit 1; }
+	bower install angular angular-resource angular-ui-router bootstrap --allow-root          >> $LOGFILE 2>&1 || { echo "---Failed to install packages via bower---" | tee -a $LOGFILE; exit 1; }
+	
+	#add client files
+	INDEX_HTML=client/index.html
+	cat << EOF > $INDEX_HTML
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -248,9 +251,9 @@ cat << EOF > $INDEX_HTML
 </html>
 EOF
 
-mkdir -p client/css
-CSS_FILE=client/css/style.css
-cat << EOF > $CSS_FILE
+	mkdir -p client/css
+	CSS_FILE=client/css/style.css
+	cat << EOF > $CSS_FILE
 body {
  padding-top:50px;
 }
@@ -259,9 +262,9 @@ body {
 }
 EOF
 
-mkdir -p client/js
-APP_JS_FILE=client/js/app.js
-cat << EOF > $APP_JS_FILE
+	mkdir -p client/js
+	APP_JS_FILE=client/js/app.js
+	cat << EOF > $APP_JS_FILE
 angular
  .module('app', [
    'ui.router'
@@ -305,9 +308,9 @@ cat << EOF > $VIEW_HTML
 </div>
 EOF
 
-mkdir -p client/js/controllers
-CONTROLLER_JS_FILE=client/js/controllers/todo.js
-cat << EOF > $CONTROLLER_JS_FILE
+	mkdir -p client/js/controllers
+	CONTROLLER_JS_FILE=client/js/controllers/todo.js
+	cat << EOF > $CONTROLLER_JS_FILE
 angular
  .module('app')
  .controller('TodoCtrl', ['\$scope', '\$state', '\$http', function(\$scope,
@@ -357,6 +360,16 @@ angular
  }]);
 EOF
 
+else
+	#download and untar application
+	yum install curl -y                                                        >> $LOGFILE 2>&1 || { echo "---Failed to install curl---" | tee -a $LOGFILE; exit 1; }
+	curl -k -o sample.tar.gz $SAMPLE_URL                                       >> $LOGFILE 2>&1 || { echo "---Failed to download application tarball---" | tee -a $LOGFILE; exit 1; }
+	tar -xzvf sample.tar.gz -C $SAMPLE_DIR                                     >> $LOGFILE 2>&1 || { echo "---Failed to untar the application---" | tee -a $LOGFILE; exit 1; }
+	
+	#start application
+	sed -i -e "s/strongloop-server/$STRONGLOOP_SERVER/g" $SAMPLE_DIR/server/server.js      >> $LOGFILE 2>&1 || { echo "---Failed to configure server.js---" | tee -a $LOGFILE; exit 1; } 
+	sed -i -e "s/8080/$SAMPLE_APP_PORT/g" $SAMPLE_DIR/server/server.js                     >> $LOGFILE 2>&1 || { echo "---Failed to change listening port in server.js---" | tee -a $LOGFILE; exit 1; } 	
+fi
 
 #make sample application as a service
 if [ "$UseSystemCtl" == "true" ]; then

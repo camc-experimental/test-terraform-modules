@@ -20,9 +20,10 @@ set -o pipefail
 
 LOGFILE="/var/log/install_strongloop_nodejs.log"
 
-MongoDB_Server=$1
-DBUserPwd=$2
-UseSystemCtl=$3
+SAMPLE_URL=$1
+MongoDB_Server=$2
+DBUserPwd=$3
+UseSystemCtl=$4
 
 #update
 
@@ -47,16 +48,17 @@ echo "---finish installing strongloop---" | tee -a $LOGFILE 2>&1
 
 echo "---start installing sample application---" | tee -a $LOGFILE 2>&1 
 
-yum install expect -y                                                                   >> $LOGFILE 2>&1 || { echo "---Failed to install Expect---" | tee -a $LOGFILE; exit 1; }
-
-#create project
 PROJECT_NAME=sample
 SAMPLE_DIR=$HOME/$PROJECT_NAME
 
-cd $HOME
-SCRIPT_CREATE_PROJECT=createProject.sh
+if [ "$SAMPLE_URL" == "not_required" ]; then
 
-cat << EOF > $SCRIPT_CREATE_PROJECT
+	yum install expect -y                                                                   >> $LOGFILE 2>&1 || { echo "---Failed to install Expect---" | tee -a $LOGFILE; exit 1; }
+
+	#create project
+	cd $HOME
+	SCRIPT_CREATE_PROJECT=createProject.sh	
+	cat << EOF > $SCRIPT_CREATE_PROJECT
 #!/usr/bin/expect
 set timeout 20
 spawn slc loopback --skip-install $PROJECT_NAME
@@ -73,22 +75,21 @@ send "\r"
 close
 EOF
 
-chmod 755 $SCRIPT_CREATE_PROJECT                                                        >> $LOGFILE 2>&1 || { echo "---Failed to change permission of script---" | tee -a $LOGFILE; exit 1; }
-./$SCRIPT_CREATE_PROJECT                                                                >> $LOGFILE 2>&1 || { echo "---Failed to execute script---" | tee -a $LOGFILE; exit 1; }
-rm -f $SCRIPT_CREATE_PROJECT                                                            >> $LOGFILE 2>&1 || { echo "---Failed to remove script---" | tee -a $LOGFILE; exit 1; }
+	chmod 755 $SCRIPT_CREATE_PROJECT                                                        >> $LOGFILE 2>&1 || { echo "---Failed to change permission of script---" | tee -a $LOGFILE; exit 1; }
+	./$SCRIPT_CREATE_PROJECT                                                                >> $LOGFILE 2>&1 || { echo "---Failed to execute script---" | tee -a $LOGFILE; exit 1; }
+	rm -f $SCRIPT_CREATE_PROJECT                                                            >> $LOGFILE 2>&1 || { echo "---Failed to remove script---" | tee -a $LOGFILE; exit 1; }
 
-#add dependency package 
-cd $SAMPLE_DIR
-sed -i -e '/loopback-datasource-juggler/a\ \ \ \ "loopback-connector-mongodb": "^1.18.0",' package.json    >> $LOGFILE 2>&1 || { echo "---Failed to add dependency for loopback-connector-mongo---" | tee -a $LOGFILE; exit 1; }
-
-#install packages in server side
-npm install                                                                             >> $LOGFILE 2>&1 || { echo "---Failed to install packages via npm---" | tee -a $LOGFILE; exit 1; }
-
-#create data model
-MODEL_NAME=Todos
-SCRIPT_CREATE_MODEL=createModel.sh
-
-cat << EOF > $SCRIPT_CREATE_MODEL
+	#add dependency package 
+	cd $SAMPLE_DIR
+	sed -i -e '/loopback-datasource-juggler/a\ \ \ \ "loopback-connector-mongodb": "^1.18.0",' package.json    >> $LOGFILE 2>&1 || { echo "---Failed to add dependency for loopback-connector-mongo---" | tee -a $LOGFILE; exit 1; }
+	
+	#install packages in server side
+	npm install                                                                             >> $LOGFILE 2>&1 || { echo "---Failed to install packages via npm---" | tee -a $LOGFILE; exit 1; }
+	
+	#create data model
+	MODEL_NAME=Todos
+	SCRIPT_CREATE_MODEL=createModel.sh
+	cat << EOF > $SCRIPT_CREATE_MODEL
 #!/usr/bin/expect
 set timeout 20
 spawn slc loopback:model $MODEL_NAME
@@ -117,20 +118,33 @@ send "\r"
 close
 EOF
 
-chmod 755 $SCRIPT_CREATE_MODEL                                                          >> $LOGFILE 2>&1 || { echo "---Failed to change permission of script---" | tee -a $LOGFILE; exit 1; }
-./$SCRIPT_CREATE_MODEL                                                                  >> $LOGFILE 2>&1 || { echo "---Failed to execute script---" | tee -a $LOGFILE; exit 1; }
-rm -f $SCRIPT_CREATE_MODEL                                                              >> $LOGFILE 2>&1 || { echo "---Failed to remove script---" | tee -a $LOGFILE; exit 1; }
+	chmod 755 $SCRIPT_CREATE_MODEL                                                          >> $LOGFILE 2>&1 || { echo "---Failed to change permission of script---" | tee -a $LOGFILE; exit 1; }
+	./$SCRIPT_CREATE_MODEL                                                                  >> $LOGFILE 2>&1 || { echo "---Failed to execute script---" | tee -a $LOGFILE; exit 1; }
+	rm -f $SCRIPT_CREATE_MODEL                                                              >> $LOGFILE 2>&1 || { echo "---Failed to remove script---" | tee -a $LOGFILE; exit 1; }
 
-#update server config
-DATA_SOURCE_FILE=server/datasources.json
-sed -i -e 's/\ \ }/\ \ },/g' $DATA_SOURCE_FILE                                          >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
-sed -i -e '/\ \ },/a\ \ "myMongoDB": {\n\ \ \ \ "host": "mongodb-server",\n\ \ \ \ "port": 27017,\n\ \ \ \ "url": "mongodb://sampleUser:sampleUserPwd@mongodb-server:27017/admin",\n\ \ \ \ "database": "Todos",\n\ \ \ \ "password": "sampleUserPwd",\n\ \ \ \ "name": "myMongoDB",\n\ \ \ \ "user": "sampleUser",\n\ \ \ \ "connector": "mongodb"\n\ \ }' $DATA_SOURCE_FILE    >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
-sed -i -e "s/mongodb-server/$MongoDB_Server/g" $DATA_SOURCE_FILE                        >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
-sed -i -e "s/sampleUserPwd/$DBUserPwd/g" $DATA_SOURCE_FILE                              >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
+	#update server config
+	DATA_SOURCE_FILE=server/datasources.json
+	sed -i -e 's/\ \ }/\ \ },/g' $DATA_SOURCE_FILE                                          >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
+	sed -i -e '/\ \ },/a\ \ "myMongoDB": {\n\ \ \ \ "host": "mongodb-server",\n\ \ \ \ "port": 27017,\n\ \ \ \ "url": "mongodb://sampleUser:sampleUserPwd@mongodb-server:27017/admin",\n\ \ \ \ "database": "Todos",\n\ \ \ \ "password": "sampleUserPwd",\n\ \ \ \ "name": "myMongoDB",\n\ \ \ \ "user": "sampleUser",\n\ \ \ \ "connector": "mongodb"\n\ \ }' $DATA_SOURCE_FILE    >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
+	sed -i -e "s/mongodb-server/$MongoDB_Server/g" $DATA_SOURCE_FILE                        >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
+	sed -i -e "s/sampleUserPwd/$DBUserPwd/g" $DATA_SOURCE_FILE                              >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
+	
+	MODEL_CONFIG_FILE=server/model-config.json
+	sed -i -e '/Todos/{n;d}' $MODEL_CONFIG_FILE                                             >> $LOGFILE 2>&1 || { echo "---Failed to update model-config.json---" | tee -a $LOGFILE; exit 1; }
+	sed -i -e '/Todos/a\ \ \ \ "dataSource": "myMongoDB",' $MODEL_CONFIG_FILE               >> $LOGFILE 2>&1 || { echo "---Failed to update model-config.json---" | tee -a $LOGFILE; exit 1; }
 
-MODEL_CONFIG_FILE=server/model-config.json
-sed -i -e '/Todos/{n;d}' $MODEL_CONFIG_FILE                                             >> $LOGFILE 2>&1 || { echo "---Failed to update model-config.json---" | tee -a $LOGFILE; exit 1; }
-sed -i -e '/Todos/a\ \ \ \ "dataSource": "myMongoDB",' $MODEL_CONFIG_FILE               >> $LOGFILE 2>&1 || { echo "---Failed to update model-config.json---" | tee -a $LOGFILE; exit 1; }
+else
+	#download and untar application
+	yum install curl -y                                                                    >> $LOGFILE 2>&1 || { echo "---Failed to install curl---" | tee -a $LOGFILE; exit 1; }
+	mkdir $SAMPLE_DIR                                                                                                                            
+	curl -k -o sample.tar.gz $SAMPLE_URL                                                   >> $LOGFILE 2>&1 || { echo "---Failed to download application tarball---" | tee -a $LOGFILE; exit 1; }
+	tar -xzvf sample.tar.gz -C $SAMPLE_DIR                                                 >> $LOGFILE 2>&1 || { echo "---Failed to untar the application---" | tee -a $LOGFILE; exit 1; }
+
+	#start application
+	sed -i -e "s/mongodb-server/$MongoDB_Server/g" $SAMPLE_DIR/server/datasources.json     >> $LOGFILE 2>&1 || { echo "---Failed to configure datasource with mongodb server address---" | tee -a $LOGFILE; exit 1; }
+	sed -i -e "s/sampleUserPwd/$DBUserPwd/g" $SAMPLE_DIR/server/datasources.json           >> $LOGFILE 2>&1 || { echo "---Failed to configure datasource with mongo user password---" | tee -a $LOGFILE; exit 1; } 
+
+fi
 
 #make sample application as a service
 if [ "$UseSystemCtl" == "true" ]; then
