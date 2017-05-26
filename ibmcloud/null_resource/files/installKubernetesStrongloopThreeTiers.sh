@@ -15,17 +15,24 @@
 #################################################################
 
 set -o errexit
-set -o nounset
 set -o pipefail
+#ignore checking unbounded variable to support back-compatibility
+#set -o nounset
+
 
 LOGFILE="/var/log/install_kubernetes_strongloop_three_tiers.log"
 
-# number of strongloop and angular services 
+#number of strongloop and angular services 
 Count=$1
-# user password for mongoDB access
+#user password for mongoDB access
 DBUserPwd=$2
-# url to download scripts
+#url to download scripts
 SCRIPT_REPO=$3
+
+#to support back-compatible
+if [ -z "$SCRIPT_REPO" ]; then
+    SCRIPT_REPO=https://raw.githubusercontent.com/camc-experimental/test-terraform-modules/master/ibmcloud/virtual_guest/files/installStrongloopThreeTiers
+fi
 
 STRONGLOOP_SCRIPT_URL=$SCRIPT_REPO/installStrongloop.sh
 ANGULAR_SCRIPT_URL=$SCRIPT_REPO/installAngularJs.sh
@@ -115,7 +122,7 @@ spec:
       - name: todolist-strongloop
         image: centos:latest
         command: ["/bin/bash"]
-        args: ["-c", "curl -k -o installStrongloop.sh $STRONGLOOP_SCRIPT_URL;bash installStrongloop.sh $MYIP $DBUserPwd false;sleep infinity"]
+        args: ["-c", "curl -k -o installStrongloop.sh $STRONGLOOP_SCRIPT_URL;bash installStrongloop.sh not_required $MYIP $DBUserPwd false;sleep infinity"]
         ports:
         - containerPort: 3000
 EOF
@@ -163,7 +170,7 @@ spec:
       - name: todolist-angularjs
         image: centos:latest
         command: ["/bin/bash"]
-        args: ["-c", "curl -k -o installAngularJs.sh  $ANGULAR_SCRIPT_URL;bash installAngularJs.sh $MYIP 8090 false;sleep infinity"]
+        args: ["-c", "curl -k -o installAngularJs.sh  $ANGULAR_SCRIPT_URL;bash installAngularJs.sh not_required $MYIP 8090 false;sleep infinity"]
         ports:
         - containerPort: 8090
 EOF
