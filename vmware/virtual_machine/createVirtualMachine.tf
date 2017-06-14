@@ -47,6 +47,21 @@ variable "cluster" {
   default     = ""
 }
 
+variable "dns_suffix" {
+  description = "Name resolution suffix for the virtual network adapter"
+  default     = ""
+}
+
+variable "primary_dns_server" {
+  description = "Primary DNS server for the virtual network adapter"
+  default     = "8.8.8.8"
+}
+
+variable "secondary_dns_server" {
+  description = "Secondary DNS server for the virtual network adapter"
+  default     = "8.8.4.4"
+}
+
 variable "network_label" {
   description = "vSphere Port Group or Network label for Virtual Machine's vNIC"
 }
@@ -75,11 +90,6 @@ variable "vm_template" {
 variable "ssh_user" {
   description = "The user for ssh connection"
   default     = "root"
-}
-
-variable "ssh_user_password" {
-  description = "The user password for ssh connection"
-  default     = ""
 }
 
 variable "camc_private_ssh_key" {
@@ -119,9 +129,10 @@ resource "vsphere_virtual_machine" "vm" {
   folder     = "${var.folder}"
   datacenter = "${var.datacenter}"
   vcpu       = "${var.vcpu}"
-  memory     = "${var.memory}"
-  cluster    = "${var.cluster}"
-
+  memory       = "${var.memory}"
+  cluster      = "${var.cluster}"
+  dns_suffixes = ["${var.dns_suffix}"]
+  dns_servers  = ["${var.primary_dns_server}","${var.secondary_dns_server}"]
   network_interface {
     label              = "${var.network_label}"
     ipv4_gateway       = "${var.ipv4_gateway}"
@@ -138,8 +149,7 @@ resource "vsphere_virtual_machine" "vm" {
   # Specify the ssh connection
   connection {
     user        = "${var.ssh_user}"
-    password    = "${var.ssh_user_password}"
-#    private_key = "${base64decode(var.camc_private_ssh_key)}"
+    private_key = "${base64decode(var.camc_private_ssh_key)}"
     host        = "${self.network_interface.0.ipv4_address}"
   }
 
