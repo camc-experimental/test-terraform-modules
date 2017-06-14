@@ -154,8 +154,8 @@ resource "vsphere_virtual_machine" "vm" {
     inline = [
       "chmod +x installation.sh",
       "bash installation.sh ${var.module_script_variables}",
-      "bach -c 'mkdir -p .ssh; if [ ! -f .ssh/authorized_keys ]; then touch .ssh/authorized_keys; chmod 600 .ssh/authorized_keys; fi'"
-      "bash -c 'if [ \"${var.remove_camc_public_key}\" == \"true\" ] ; then if [ \"${var.user_public_key}\" != \"None\" ] ; then echo \"${var.user_public_key}\" | tee $HOME/.ssh/authorized_keys; fi; fi'"
+      "bach -c 'mkdir -p .ssh; if [ ! -f .ssh/authorized_keys ]; then touch .ssh/authorized_keys; chmod 600 .ssh/authorized_keys; fi'",
+      "bash -c 'if [ \"${var.remove_camc_public_key}\" == \"true\" ] ; then if [ \"${var.user_public_key}\" != \"None\" ] ; then echo \"${var.user_public_key}\" | tee $HOME/.ssh/authorized_keys; fi; fi'",
       "${var.module_custom_commands}"
     ]
   }
