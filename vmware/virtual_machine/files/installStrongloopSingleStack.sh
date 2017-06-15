@@ -318,8 +318,6 @@ mkdir -p client/js/services
 LB_SERVICE_JS_FILE=client/js/services/lb-services.js
 lb-ng $SERVER_JS_FILE $LB_SERVICE_JS_FILE                                                                                                    >> $LOGFILE 2>&1 || { echo "---Failed to create lb-service.js---" | tee -a $LOGFILE; exit 1; }
 
-fi
-
 #make sample application as a service
 SAMPLE_APP_SERVICE_CONF=/etc/systemd/system/nodeserver.service
 cat << EOF > $SAMPLE_APP_SERVICE_CONF
