@@ -65,6 +65,6 @@ resource "random_id" "default" {
 }
 
 output "done" {
-    value = "${var.is_dependent_on == 1 ? random_id.default.hex : "done"}"
+    value = "${random_id.default.hex}"
 }
 
