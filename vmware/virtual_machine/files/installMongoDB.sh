@@ -53,6 +53,9 @@ if [ "$NEED_CREATE_USER" == "true" ]; then
 	sleep 10
 	mongo admin --eval "db.createUser({user: \"sampleUser\", pwd: \"$DBUserPwd\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})"    >> $LOGFILE 2>&1 || { echo "---Failed to create MongoDB user---" | tee -a $LOGFILE; exit 1; }
 	service mongod restart                                                                                                                       >> $LOGFILE 2>&1 || { echo "---Failed to restart mongod---" | tee -a $LOGFILE; exit 1; }
+
+	#update firewall
+	iptables -A IN_public_allow -p tcp -m tcp --dport 27017 -m conntrack --ctstate NEW -j ACCEPT                                                 >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
 				
 	echo "---finish configuring mongodb---" | tee -a $LOGFILE 2>&1 
 fi		
