@@ -23,7 +23,7 @@ LOGFILE="/var/log/install_mongodb.log"
 #update
 
 echo "---update system---" | tee -a $LOGFILE 2>&1 
-yum update -y >> $LOGFILE 2>&1 
+yum update -y                                                                     >> $LOGFILE 2>&1 
 
 #install mongodb
 
