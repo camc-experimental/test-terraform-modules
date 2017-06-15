@@ -26,8 +26,8 @@ UseSystemCtl=$3
 
 #update
 
-echo "---update system---" | tee -a $LOGFILE 2>&1 
-yum update -y                                                              >> $LOGFILE 2>&1 
+#echo "---update system---" | tee -a $LOGFILE 2>&1 
+#yum update -y                                                              >> $LOGFILE 2>&1 
 
 #install node.js
 

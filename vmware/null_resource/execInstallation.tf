@@ -28,11 +28,6 @@ variable "module_custom_commands" {
   default = "sleep 1"
 }
 
-variable "depends_on_modules" {
-  type    = "list"
-  default = ["None"]
-}
-
 resource "null_resource" "default"{
 
   # Specify the ssh connection
