@@ -28,6 +28,10 @@ variable "module_custom_commands" {
   default = "sleep 1"
 }
 
+variable "is_dependent_on"{
+  default = false
+}
+
 resource "null_resource" "default"{
 
   # Specify the ssh connection
@@ -54,6 +58,13 @@ resource "null_resource" "default"{
   
 }
 
-output "done" {
-    value = "done"     
+resource "random_id" "default" {
+  count = "${var.is_depended_on}"
+  depends_on = ["null_resource.default"]
+  byte_length = "8"
 }
+
+output "done" {
+    value = "${var.is_dependent_on == 1 ? random_id.default.hex : "done"}"
+}
+
