@@ -20,8 +20,6 @@ set -o pipefail
 
 LOGFILE="/var/log/install_mongodb_strongloop_angular_nodejs.log"
 
-SAMPLE_URL=$1
-
 #update
 
 echo "---update system---" | tee -a $LOGFILE 2>&1 
@@ -47,7 +45,8 @@ echo "---finish installing mongodb---" | tee -a $LOGFILE 2>&1
 #install node.js
 
 echo "---start installing node.js---" | tee -a $LOGFILE 2>&1 
-yum install epel-release -y                                                        >> $LOGFILE 2>&1 || { echo "---Failed to install epel---" | tee -a $LOGFILE; exit 1; }
+yum install gcc-c++ make -y                                                        >> $LOGFILE 2>&1 || { echo "---Failed to install build tools---" | tee -a $LOGFILE; exit 1; }
+curl -sL https://rpm.nodesource.com/setup_7.x | bash -                             >> $LOGFILE 2>&1 || { echo "---Failed to install the NodeSource Node.js 7.x repo---" | tee -a $LOGFILE; exit 1; }
 yum install nodejs -y                                                              >> $LOGFILE 2>&1 || { echo "---Failed to install node.js---"| tee -a $LOGFILE; exit 1; }
 echo "---finish installing node.js---" | tee -a $LOGFILE 2>&1 
 
@@ -78,16 +77,14 @@ mongo admin --eval "db.createUser({user: \"sampleUser\", pwd: \"$dbUserPwd\", ro
 
 PROJECT_NAME=sample
 SAMPLE_DIR=$HOME/$PROJECT_NAME
-	
-if [ "$SAMPLE_URL" == "not_required" ]; then
-		
-	yum install expect -y                                                                                                                        >> $LOGFILE 2>&1 || { echo "---Failed to install Expect---" | tee -a $LOGFILE; exit 1; }
+			
+yum install expect -y                                                                                                                        >> $LOGFILE 2>&1 || { echo "---Failed to install Expect---" | tee -a $LOGFILE; exit 1; }
 
-	#create project
-	cd $HOME
-	SCRIPT_CREATE_PROJECT=createProject.sh
+#create project
+cd $HOME
+SCRIPT_CREATE_PROJECT=createProject.sh
 
-	cat << EOF > $SCRIPT_CREATE_PROJECT
+cat << EOF > $SCRIPT_CREATE_PROJECT
 #!/usr/bin/expect
 set timeout 20
 spawn slc loopback --skip-install $PROJECT_NAME
@@ -104,22 +101,22 @@ send "\r"
 close
 EOF
 
-	chmod 755 $SCRIPT_CREATE_PROJECT                                                                                                            >> $LOGFILE 2>&1 || { echo "---Failed to change permission of script---" | tee -a $LOGFILE; exit 1; }
-	./$SCRIPT_CREATE_PROJECT                                                                                                                    >> $LOGFILE 2>&1 || { echo "---Failed to execute script---" | tee -a $LOGFILE; exit 1; }
-	rm -f $SCRIPT_CREATE_PROJECT                                                                                                                >> $LOGFILE 2>&1 || { echo "---Failed to remove script---" | tee -a $LOGFILE; exit 1; }
+chmod 755 $SCRIPT_CREATE_PROJECT                                                                                                            >> $LOGFILE 2>&1 || { echo "---Failed to change permission of script---" | tee -a $LOGFILE; exit 1; }
+./$SCRIPT_CREATE_PROJECT                                                                                                                    >> $LOGFILE 2>&1 || { echo "---Failed to execute script---" | tee -a $LOGFILE; exit 1; }
+rm -f $SCRIPT_CREATE_PROJECT                                                                                                                >> $LOGFILE 2>&1 || { echo "---Failed to remove script---" | tee -a $LOGFILE; exit 1; }
 
-	#add dependency package 
-	cd $SAMPLE_DIR
-	sed -i -e '/loopback-datasource-juggler/a\ \ \ \ "loopback-connector-mongodb": "^1.18.0",' package.json                                     >> $LOGFILE 2>&1 || { echo "---Failed to add dependency for loopback-connector-mongo---" | tee -a $LOGFILE; exit 1; }
+#add dependency package 
+cd $SAMPLE_DIR
+sed -i -e '/loopback-datasource-juggler/a\ \ \ \ "loopback-connector-mongodb": "^1.18.0",' package.json                                     >> $LOGFILE 2>&1 || { echo "---Failed to add dependency for loopback-connector-mongo---" | tee -a $LOGFILE; exit 1; }
 
-	#install packages in server side
-	npm install                                                                                                                                 >> $LOGFILE 2>&1 || { echo "---Failed to install packages via npm---" | tee -a $LOGFILE; exit 1; }
+#install packages in server side
+npm install                                                                                                                                 >> $LOGFILE 2>&1 || { echo "---Failed to install packages via npm---" | tee -a $LOGFILE; exit 1; }
 	
-	#create data model
-	MODEL_NAME=Todos
-	SCRIPT_CREATE_MODEL=createModel.sh
+#create data model
+MODEL_NAME=Todos
+SCRIPT_CREATE_MODEL=createModel.sh
 	
-	cat << EOF > $SCRIPT_CREATE_MODEL
+cat << EOF > $SCRIPT_CREATE_MODEL
 #!/usr/bin/expect
 set timeout 20
 spawn slc loopback:model $MODEL_NAME
@@ -148,36 +145,36 @@ send "\r"
 close
 EOF
 
-	chmod 755 $SCRIPT_CREATE_MODEL                                                                                                              >> $LOGFILE 2>&1 || { echo "---Failed to change permission of script---" | tee -a $LOGFILE; exit 1; }
-	./$SCRIPT_CREATE_MODEL                                                                                                                      >> $LOGFILE 2>&1 || { echo "---Failed to execute script---" | tee -a $LOGFILE; exit 1; }
-	rm -f $SCRIPT_CREATE_MODEL                                                                                                                  >> $LOGFILE 2>&1 || { echo "---Failed to remove script---" | tee -a $LOGFILE; exit 1; }
+chmod 755 $SCRIPT_CREATE_MODEL                                                                                                              >> $LOGFILE 2>&1 || { echo "---Failed to change permission of script---" | tee -a $LOGFILE; exit 1; }
+./$SCRIPT_CREATE_MODEL                                                                                                                      >> $LOGFILE 2>&1 || { echo "---Failed to execute script---" | tee -a $LOGFILE; exit 1; }
+rm -f $SCRIPT_CREATE_MODEL                                                                                                                  >> $LOGFILE 2>&1 || { echo "---Failed to remove script---" | tee -a $LOGFILE; exit 1; }
 	
-	#update server config
-	DATA_SOURCE_FILE=server/datasources.json
-	sed -i -e 's/\ \ }/\ \ },/g' $DATA_SOURCE_FILE                                                                                              >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
-	sed -i -e '/\ \ },/a\ \ "myMongoDB": {\n\ \ \ \ "host": "localhost",\n\ \ \ \ "port": 27017,\n\ \ \ \ "url": "mongodb://sampleUser:sampleUserPwd@localhost:27017/admin",\n\ \ \ \ "database": "Todos",\n\ \ \ \ "password": "sampleUserPwd",\n\ \ \ \ "name": "myMongoDB",\n\ \ \ \ "user": "sampleUser",\n\ \ \ \ "connector": "mongodb"\n\ \ }' $DATA_SOURCE_FILE    >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
-	sed -i -e "s/sampleUserPwd/$dbUserPwd/g" $DATA_SOURCE_FILE                                                                                  >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
+#update server config
+DATA_SOURCE_FILE=server/datasources.json
+sed -i -e 's/\ \ }/\ \ },/g' $DATA_SOURCE_FILE                                                                                              >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
+sed -i -e '/\ \ },/a\ \ "myMongoDB": {\n\ \ \ \ "host": "localhost",\n\ \ \ \ "port": 27017,\n\ \ \ \ "url": "mongodb://sampleUser:sampleUserPwd@localhost:27017/admin",\n\ \ \ \ "database": "Todos",\n\ \ \ \ "password": "sampleUserPwd",\n\ \ \ \ "name": "myMongoDB",\n\ \ \ \ "user": "sampleUser",\n\ \ \ \ "connector": "mongodb"\n\ \ }' $DATA_SOURCE_FILE    >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
+sed -i -e "s/sampleUserPwd/$dbUserPwd/g" $DATA_SOURCE_FILE                                                                                  >> $LOGFILE 2>&1 || { echo "---Failed to update datasource.json---" | tee -a $LOGFILE; exit 1; }
 	
-	MODEL_CONFIG_FILE=server/model-config.json
-	sed -i -e '/Todos/{n;d}' $MODEL_CONFIG_FILE                                                                                                 >> $LOGFILE 2>&1 || { echo "---Failed to update model-config.json---" | tee -a $LOGFILE; exit 1; }
-	sed -i -e '/Todos/a\ \ \ \ "dataSource": "myMongoDB",' $MODEL_CONFIG_FILE                                                                   >> $LOGFILE 2>&1 || { echo "---Failed to update model-config.json---" | tee -a $LOGFILE; exit 1; }
+MODEL_CONFIG_FILE=server/model-config.json
+sed -i -e '/Todos/{n;d}' $MODEL_CONFIG_FILE                                                                                                 >> $LOGFILE 2>&1 || { echo "---Failed to update model-config.json---" | tee -a $LOGFILE; exit 1; }
+sed -i -e '/Todos/a\ \ \ \ "dataSource": "myMongoDB",' $MODEL_CONFIG_FILE                                                                   >> $LOGFILE 2>&1 || { echo "---Failed to update model-config.json---" | tee -a $LOGFILE; exit 1; }
 	
-	SERVER_JS_FILE=server/server.js
-	sed -i -e "/app = module.exports = loopback()/a var path = require('path');\napp.use(loopback.static(path.resolve(__dirname, \'../client\')));" $SERVER_JS_FILE     >> $LOGFILE 2>&1 || { echo "---Failed to update server.js---" | tee -a $LOGFILE; exit 1; }
+SERVER_JS_FILE=server/server.js
+sed -i -e "/app = module.exports = loopback()/a var path = require('path');\napp.use(loopback.static(path.resolve(__dirname, \'../client\')));" $SERVER_JS_FILE     >> $LOGFILE 2>&1 || { echo "---Failed to update server.js---" | tee -a $LOGFILE; exit 1; }
 
-	#install packages in client side
-	BOWERRC_FILE=.bowerrc
-	cat << EOF > $BOWERRC_FILE
+#install packages in client side
+BOWERRC_FILE=.bowerrc
+cat << EOF > $BOWERRC_FILE
 {
   "directory": "client/vendor"
 }
 EOF
 
-	bower install angular angular-resource angular-ui-router bootstrap --allow-root                                                             >> $LOGFILE 2>&1 || { echo "---Failed to install packages via bower---" | tee -a $LOGFILE; exit 1; }
+bower install angular angular-resource angular-ui-router bootstrap --allow-root                                                             >> $LOGFILE 2>&1 || { echo "---Failed to install packages via bower---" | tee -a $LOGFILE; exit 1; }
 
-	#add client files
-	INDEX_HTML=client/index.html
-	cat << EOF > $INDEX_HTML
+#add client files
+INDEX_HTML=client/index.html
+cat << EOF > $INDEX_HTML
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -211,9 +208,9 @@ EOF
 </html>
 EOF
 
-	mkdir -p client/css
-	CSS_FILE=client/css/style.css
-	cat << EOF > $CSS_FILE
+mkdir -p client/css
+CSS_FILE=client/css/style.css
+cat << EOF > $CSS_FILE
 body {
  padding-top:50px;
 }
@@ -222,9 +219,9 @@ body {
 }
 EOF
 
-	mkdir -p client/js
-	APP_JS_FILE=client/js/app.js
-	cat << EOF > $APP_JS_FILE
+mkdir -p client/js
+APP_JS_FILE=client/js/app.js
+cat << EOF > $APP_JS_FILE
 'use strict';
 
 angular
@@ -244,9 +241,9 @@ angular
  }]);
 EOF
 
-	mkdir -p client/js/views
-	VIEW_HTML=client/js/views/todo.html
-	cat << EOF > $VIEW_HTML
+mkdir -p client/js/views
+VIEW_HTML=client/js/views/todo.html
+cat << EOF > $VIEW_HTML
 <h1>Todo list</h1>
 <hr>
 <form name="todoForm" novalidate ng-submit="addTodo()">
@@ -271,9 +268,9 @@ EOF
 </div>
 EOF
 
-	mkdir -p client/js/controllers
-	CONTROLLER_JS_FILE=client/js/controllers/todo.js
-	cat << EOF > $CONTROLLER_JS_FILE
+mkdir -p client/js/controllers
+CONTROLLER_JS_FILE=client/js/controllers/todo.js
+cat << EOF > $CONTROLLER_JS_FILE
 'use strict';
 
 angular
@@ -317,19 +314,10 @@ angular
  }]);
 EOF
 
-	mkdir -p client/js/services
-	LB_SERVICE_JS_FILE=client/js/services/lb-services.js
-	lb-ng $SERVER_JS_FILE $LB_SERVICE_JS_FILE                                                                                                    >> $LOGFILE 2>&1 || { echo "---Failed to create lb-service.js---" | tee -a $LOGFILE; exit 1; }
+mkdir -p client/js/services
+LB_SERVICE_JS_FILE=client/js/services/lb-services.js
+lb-ng $SERVER_JS_FILE $LB_SERVICE_JS_FILE                                                                                                    >> $LOGFILE 2>&1 || { echo "---Failed to create lb-service.js---" | tee -a $LOGFILE; exit 1; }
 
-else
-	#download and untar application
-	yum install curl -y                                                                                                                          >> $LOGFILE 2>&1 || { echo "---Failed to install curl---" | tee -a $LOGFILE; exit 1; }
-	mkdir $SAMPLE_DIR                                                                                                                            
-	curl -k -o sample.tar.gz $SAMPLE_URL                                                                                                         >> $LOGFILE 2>&1 || { echo "---Failed to download application tarball---" | tee -a $LOGFILE; exit 1; }
-	tar -xzvf sample.tar.gz -C $SAMPLE_DIR                                                                                                       >> $LOGFILE 2>&1 || { echo "---Failed to untar the application---" | tee -a $LOGFILE; exit 1; }
-
-	#update datasource
-	sed -i -e "s/sampleUserPwd/$dbUserPwd/g" $SAMPLE_DIR/server/datasources.json 
 fi
 
 #make sample application as a service
@@ -355,5 +343,3 @@ systemctl enable nodeserver.service                                             
 systemctl start nodeserver.service                                                                                                          >> $LOGFILE 2>&1 || { echo "---Failed to start the sample node service---" | tee -a $LOGFILE; exit 1; }
 		
 echo "---finish installing sample application---" | tee -a $LOGFILE 2>&1 		
-
-
