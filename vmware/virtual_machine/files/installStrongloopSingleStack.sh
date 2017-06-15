@@ -339,5 +339,8 @@ EOF
 
 systemctl enable nodeserver.service                                                                                                         >> $LOGFILE 2>&1 || { echo "---Failed to enable the sample node service---" | tee -a $LOGFILE; exit 1; }
 systemctl start nodeserver.service                                                                                                          >> $LOGFILE 2>&1 || { echo "---Failed to start the sample node service---" | tee -a $LOGFILE; exit 1; }
+
+#update firewall
+iptables -A IN_public_allow -p tcp -m tcp --dport 3000 -m conntrack --ctstate NEW -j ACCEPT                                                 >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
 		
 echo "---finish installing sample application---" | tee -a $LOGFILE 2>&1 		
