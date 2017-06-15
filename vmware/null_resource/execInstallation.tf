@@ -28,7 +28,7 @@ variable "module_custom_commands" {
   default = "sleep 1"
 }
 
-variable "depends_on_mondules" {
+variable "depends_on_modules" {
   type    = "list"
   default = ["None"]
 }
