@@ -27,6 +27,12 @@ variable "module_script_variables" {
 variable "module_custom_commands" {
   default = "sleep 1"
 }
+
+variable "depends_on_mondules" {
+  type    = "list"
+  default = ["None"]
+}
+
 resource "null_resource" "default"{
 
   # Specify the ssh connection
@@ -51,4 +57,8 @@ resource "null_resource" "default"{
     ]
   }
   
+}
+
+output "done" {
+    value = "done"     
 }
