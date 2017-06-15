@@ -12,59 +12,147 @@
 # ©Copyright IBM Corp. 2017.
 #
 ########################################################################
-variable "hostname" {}
-variable "datacenter" {}
-variable "user_public_key_id" {}
-variable "temp_public_key_id" {}
-variable "temp_public_key" {}
-variable "temp_private_key" {}
-variable "module_script" {
-  default = "files/default.sh"
+
+
+#########################################################
+# Define the variables
+#########################################################
+variable "name" {
+  description = "Name of the Virtual Machine"
 }
-variable "os_reference_code" {}
-variable "domain" {}
-variable "cores" {}
-variable "memory" {}
-variable "disk1" {}
+
+variable "folder" {
+  description = "Target vSphere folder for Virtual Machine"
+  default     = ""
+}
+
+variable "datacenter" {
+  description = "Target vSphere datacenter for Virtual Machine creation"
+  default     = ""
+}
+
+variable "vcpu" {
+  description = "Number of Virtual CPU for the Virtual Machine"
+  default     = 1
+}
+
+variable "memory" {
+  description = "Memory for Virtual Machine in MBs"
+  default     = 1024
+}
+
+variable "cluster" {
+  description = "Target vSphere Cluster to host the Virtual Machine"
+  default     = ""
+}
+
+variable "dns_suffix" {
+  description = "Name resolution suffix for the virtual network adapter"
+  default     = ""
+}
+
+variable "primary_dns_server" {
+  description = "Primary DNS server for the virtual network adapter"
+  default     = "8.8.8.8"
+}
+
+variable "secondary_dns_server" {
+  description = "Secondary DNS server for the virtual network adapter"
+  default     = "8.8.4.4"
+}
+
+variable "network_label" {
+  description = "vSphere Port Group or Network label for Virtual Machine's vNIC"
+}
+
+variable "ipv4_addresses" {
+  description = "IPv4 addresses for vNIC configuration"
+}
+
+variable "ipv4_gateway" {
+  description = "IPv4 gateway for vNIC configuration"
+}
+
+variable "ipv4_prefix_length" {
+  description = "IPv4 Prefix length for vNIC configuration"
+}
+
+variable "storage" {
+  description = "Data store or storage cluster name for target VMs disks"
+  default     = ""
+}
+
+variable "vm_template" {
+  description = "Source VM or Template label for cloning"
+}
+
+variable "ssh_user" {
+  description = "The user for ssh connection"
+  default     = "root"
+}
+
+variable "camc_private_ssh_key" {
+  description = "The base64 encoded private key for ssh connection"
+  default     = ""
+}
+
+variable "user_public_key" {
+  description = "User-provided public SSH key used to connect to the virtual machine"
+  default     = "None"
+}
+
+variable "module_script" {
+  description = "The script to install applications"  
+  default     = "files/default.sh"	
+}
+
+variable "module_script_variables" {
+  description = "The variables for script to install applications"
+  default     = ""
+}
+
+variable "module_custom_commands" {
+  description = "The extra commands needed after application installation"
+  default     = "sleep 1"
+}
+
 variable "count" {
   default = 1
 }
-variable "ssh_user" {
-  default = "root"
-}
-variable "module_script_variables" {
-  default = ""
-}
-variable "module_sample_application_url" {
-  default = ""
-}
-variable "module_custom_commands" {
-  default = "sleep 1"
-}
 
-resource "ibmcloud_infra_virtual_guest" "softlayer_virtual_guest" {
-  count                    = "${var.count}"
-  hostname                 = "${var.hostname}-${count.index+1}"
-  os_reference_code        = "${var.os_reference_code}"
-  domain                   = "${var.domain}"
-  datacenter               = "${var.datacenter}"
-  network_speed            = 10
-  hourly_billing           = true
-  private_network_only     = false
-  cores                    = "${var.cores}"
-  memory                   = "${var.memory}"
-  disks                    = ["${var.disk1}"]
-  dedicated_acct_host_only = true
-  local_disk               = false
-  ssh_key_ids              = ["${var.user_public_key_id}", "${var.temp_public_key_id}"]
+##############################################################
+# Create Virtual Machine
+##############################################################
+resource "vsphere_virtual_machine" "vm" {
+  count      = "${var.count}"
+  name       = "${var.name}-${count.index+1}"
+  folder     = "${var.folder}"
+  datacenter = "${var.datacenter}"
+  vcpu       = "${var.vcpu}"
+  memory       = "${var.memory}"
+  cluster      = "${var.cluster}"
+  dns_suffixes = ["${var.dns_suffix}"]
+  dns_servers  = ["${var.primary_dns_server}","${var.secondary_dns_server}"]
+  network_interface {
+    label              = "${var.network_label}"
+    ipv4_gateway       = "${var.ipv4_gateway}"
+    ipv4_address       = "${var.ipv4_addresses[count.index]}"
+    ipv4_prefix_length = "${var.ipv4_prefix_length}"
+  }
+  
+  disk {
+    datastore = "${var.storage}"
+    template  = "${var.vm_template}"
+    type      = "thin"
+  }
 
   # Specify the ssh connection
   connection {
     user        = "${var.ssh_user}"
-    private_key = "${var.temp_private_key}"
-    host        = "${self.ipv4_address}"
+    private_key = "${base64decode(var.camc_private_ssh_key)}"
+    host        = "${self.network_interface.0.ipv4_address}"
   }
-  
+
   # Create the installation script
   provisioner "file" {
     source      = "${path.module}/${var.module_script}"
@@ -74,14 +162,17 @@ resource "ibmcloud_infra_virtual_guest" "softlayer_virtual_guest" {
   # Execute the script remotely
   provisioner "remote-exec" {
     inline = [
-      "chmod +x installation.sh",
-      "bash installation.sh ${var.module_sample_application_url} ${var.module_script_variables}",
-      "bash -c 'KEY=$(echo \"${var.temp_public_key}\" | cut -c 9-); cd /root/.ssh; grep -v $KEY authorized_keys > authorized_keys.new; mv -f authorized_keys.new authorized_keys; chmod 600 authorized_keys'",
+      "bash -c 'mkdir -p .ssh; if [ ! -f .ssh/authorized_keys ] ; then touch .ssh/authorized_keys; chmod 400 .ssh/authorized_keys;fi'",
+      "bash -c 'if [ \"${var.user_public_key}\" != \"None\" ] ; then chmod 600 .ssh/authorized_keys; echo \"${var.user_public_key}\" | tee -a $HOME/.ssh/authorized_keys; chmod 400 .ssh/authorized_keys; fi'",
       "${var.module_custom_commands}"
     ]
   }
 }
 
-output "public_ip" {
-    value = "${join(",", ibmcloud_infra_virtual_guest.softlayer_virtual_guest.*.ipv4_address)}"    
+##############################################################
+# Output
+##############################################################
+output "ips" {
+    value = "${join(",", vsphere_virtual_machine.vm.*.network_interface.0.ipv4_address)}"     
 }
+

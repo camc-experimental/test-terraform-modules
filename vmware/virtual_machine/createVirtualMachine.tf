@@ -1,5 +1,5 @@
 #################################################################
-# Module to deploy VM with  specified applications installed:
+# Module to deploy VM with  specified applications installed
 #
 # Version: 1.0
 #
@@ -162,8 +162,6 @@ resource "vsphere_virtual_machine" "vm" {
   # Execute the script remotely
   provisioner "remote-exec" {
     inline = [
-      "chmod +x installation.sh",
-      "bash installation.sh ${var.module_script_variables}",
       "bash -c 'mkdir -p .ssh; if [ ! -f .ssh/authorized_keys ] ; then touch .ssh/authorized_keys; chmod 400 .ssh/authorized_keys;fi'",
       "bash -c 'if [ \"${var.user_public_key}\" != \"None\" ] ; then chmod 600 .ssh/authorized_keys; if [ \"${var.remove_camc_public_key}\" == \"true\" ] ; then echo \"${var.user_public_key}\" | tee $HOME/.ssh/authorized_keys; else echo \"${var.user_public_key}\" | tee -a $HOME/.ssh/authorized_keys; fi; chmod 400 .ssh/authorized_keys; fi'",
       "${var.module_custom_commands}"
