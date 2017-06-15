@@ -59,7 +59,7 @@ resource "null_resource" "default"{
 }
 
 resource "random_id" "default" {
-  count = "${var.is_depended_on}"
+  count = "${var.is_dependent_on}"
   depends_on = ["null_resource.default"]
   byte_length = "8"
 }
