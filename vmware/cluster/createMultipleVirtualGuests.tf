@@ -72,6 +72,7 @@ variable "network_label" {
 }
 
 variable "ipv4_addresses" {
+  type        = "list"
   description = "IPv4 addresses for vNIC configuration"
 }
 
