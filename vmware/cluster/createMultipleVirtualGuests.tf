@@ -19,6 +19,12 @@
 #########################################################
 variable "name" {
   description = "Name of the Virtual Machine"
+  default     = "None"
+}
+
+variable "name_prefix" {
+  description = "Name prefix of the Virtual Machines in a cluster"
+  default     = "None"
 }
 
 variable "folder" {
@@ -121,14 +127,14 @@ variable "count" {
 }
 
 ##############################################################
-# Create Virtual Machine
+# Create Virtual Machines
 ##############################################################
 resource "vsphere_virtual_machine" "vm" {
-  count      = "${var.count}"
-  name       = "${var.name}-${count.index+1}"
-  folder     = "${var.folder}"
-  datacenter = "${var.datacenter}"
-  vcpu       = "${var.vcpu}"
+  count        = "${var.count}"
+  name         = "${var.name_prefix == "None" ? var.name : format("${var.name_prefix}-%d", count.index+1)}"
+  folder       = "${var.folder}"
+  datacenter   = "${var.datacenter}"
+  vcpu         = "${var.vcpu}"
   memory       = "${var.memory}"
   cluster      = "${var.cluster}"
   dns_suffixes = ["${var.dns_suffix}"]
@@ -172,7 +178,7 @@ resource "vsphere_virtual_machine" "vm" {
 ##############################################################
 # Output
 ##############################################################
-output "ips" {
-    value = "${join(",", vsphere_virtual_machine.vm.*.network_interface.0.ipv4_address)}"     
+output "ip" {
+    value = "${var.count == 1 ? vsphere_virtual_machine.vm.network_interface.0.ipv4_address : join(",", vsphere_virtual_machine.vm.*.network_interface.0.ipv4_address)}"     
 }
 
