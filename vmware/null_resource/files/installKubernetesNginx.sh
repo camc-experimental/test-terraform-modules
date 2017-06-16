@@ -70,3 +70,19 @@ EOF
 
 kubectl create -f nginx-service.yaml                         >> $LOGFILE 2>&1 || { echo "---Failed to create nginx service---" | tee -a $LOGFILE; exit 1; }
 
+echo "---check nginx deployment status---" | tee -a $LOGFILE 2>&1
+
+NginxPodStatus=$(kubectl get pod | grep "nginx-deployment" | awk 'NR == 1' | awk '{print $3}')
+StatusCheckMaxCount=120
+StatusCheckCount=0
+while [ "$NginxPodStatus" != "Running" ]; do
+	echo "---Check $StatusCheckCount: $NginxPodStatus---" | tee -a $LOGFILE 2>&1
+	sleep 10
+	let StatusCheckCount=StatusCheckCount+1	
+	if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
+		echo "---Cannot connect to the nginx container---" | tee -a $LOGFILE 2>&1 
+		exit 1
+	fi
+	NginxPodStatus=$(kubectl get pod | grep "nginx-deployment" | awk 'NR == 1' | awk '{print $3}')
+done
+
