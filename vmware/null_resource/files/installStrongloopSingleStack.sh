@@ -22,8 +22,8 @@ LOGFILE="/var/log/install_mongodb_strongloop_angular_nodejs.log"
 
 #update
 
-echo "---update system---" | tee -a $LOGFILE 2>&1 
-yum update -y >> $LOGFILE 2>&1 
+#echo "---update system---" | tee -a $LOGFILE 2>&1 
+#yum update -y >> $LOGFILE 2>&1 
 
 #install mongodb
 
