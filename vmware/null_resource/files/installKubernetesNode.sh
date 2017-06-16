@@ -23,14 +23,6 @@ LOGFILE="/var/log/install_kubernetes_minion.log"
 MASTERIP=$1
 
 #################################################################
-# Update firewalls
-#################################################################
-iptables -I INPUT 1 -p tcp -m tcp --dport 443 -m conntrack --ctstate NEW -j ACCEPT        >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
-iptables -I INPUT 2 -p tcp -m tcp --dport 2379 -m conntrack --ctstate NEW -j ACCEPT       >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
-iptables -I INPUT 2 -p tcp -m tcp --dport 8080 -m conntrack --ctstate NEW -j ACCEPT       >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
-
-
-#################################################################
 # Set up hostname and obtain IP
 #################################################################
 echo "---start hostname, ip address setup---" | tee -a $LOGFILE 2>&1
@@ -54,6 +46,7 @@ echo "---start installing kubernetes minion node on $MYHOSTNAME---" | tee -a $LO
 #################################################################
 # install packages
 #################################################################
+subscription-manager repos --enable=rhel-7-server-extras-rpms         >> $LOGFILE 2>&1 || { echo "---Add rhel-7-server-extras-rpms repo---" | tee -a $LOGFILE; exit 1; }
 systemctl disable firewalld                                           >> $LOGFILE 2>&1 || { echo "---Failed to disable firewall---" | tee -a $LOGFILE; exit 1; }
 systemctl stop firewalld                                              >> $LOGFILE 2>&1 || { echo "---Failed to stop firewall---" | tee -a $LOGFILE; exit 1; }
 sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config   >> $LOGFILE 2>&1 || { echo "---Failed to config selinux---" | tee -a $LOGFILE; exit 1; }

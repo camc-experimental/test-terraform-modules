@@ -70,8 +70,3 @@ EOF
 
 kubectl create -f nginx-service.yaml                         >> $LOGFILE 2>&1 || { echo "---Failed to create nginx service---" | tee -a $LOGFILE; exit 1; }
 
-#################################################################
-# Update firewall
-#################################################################
-iptables -I INPUT 1 -p tcp -m tcp --dport 80 -m conntrack --ctstate NEW -j ACCEPT        >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
-

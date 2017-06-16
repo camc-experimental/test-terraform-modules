@@ -39,6 +39,7 @@ echo "---start installing kubernetes master node on $MYHOSTNAME---" | tee -a $LO
 #################################################################
 # install packages
 #################################################################
+subscription-manager repos --enable=rhel-7-server-extras-rpms         >> $LOGFILE 2>&1 || { echo "---Add rhel-7-server-extras-rpms repo---" | tee -a $LOGFILE; exit 1; }
 systemctl disable firewalld                                           >> $LOGFILE 2>&1 || { echo "---Failed to disable firewall---" | tee -a $LOGFILE; exit 1; }
 systemctl stop firewalld                                              >> $LOGFILE 2>&1 || { echo "---Failed to stop firewall---" | tee -a $LOGFILE; exit 1; }
 sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config   >> $LOGFILE 2>&1 || { echo "---Failed to config selinux---" | tee -a $LOGFILE; exit 1; }
@@ -121,14 +122,6 @@ sed -i "s/# - --apiserver-host=http:\/\/my-address:port/- --apiserver-host=http:
 
 kubectl create -f kubernetes-dashboard.yaml --validate=false                                                                   >> $LOGFILE 2>&1 
 echo "---kubernetes master node installed successfully---" | tee -a $LOGFILE 2>&1
-
-#################################################################
-# Update firewalls
-#################################################################
-iptables -I INPUT 1 -p tcp -m tcp --dport 443 -m conntrack --ctstate NEW -j ACCEPT                                             >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
-iptables -I INPUT 2 -p tcp -m tcp --dport 2379 -m conntrack --ctstate NEW -j ACCEPT                                            >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
-iptables -I INPUT 2 -p tcp -m tcp --dport 8080 -m conntrack --ctstate NEW -j ACCEPT                                            >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
-
 
 #################################################################
 # reboot
