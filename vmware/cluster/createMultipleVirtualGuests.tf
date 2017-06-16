@@ -180,6 +180,7 @@ resource "vsphere_virtual_machine" "vm" {
 # Output
 ##############################################################
 output "ip" {
-    value = "${var.count == 1 ? vsphere_virtual_machine.vm.network_interface.0.ipv4_address : join(",", vsphere_virtual_machine.vm.*.network_interface.0.ipv4_address)}"     
+#    value = "${var.count == 1 ? vsphere_virtual_machine.vm.network_interface.0.ipv4_address : join(",", vsphere_virtual_machine.vm.*.network_interface.0.ipv4_address)}"
+  value = "${join(",", vsphere_virtual_machine.vm.*.network_interface.0.ipv4_address)}"     
 }
 
