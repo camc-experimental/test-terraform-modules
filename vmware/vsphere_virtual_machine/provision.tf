@@ -1,7 +1,5 @@
-#################################################################
-# Module to deploy VM with  specified applications installed
-#
-# Version: 1.0
+########################################################################
+# Module to provision one or more VMs
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,13 +11,20 @@
 #
 # ©Copyright IBM Corp. 2017.
 #
-#################################################################
+########################################################################
+
 
 #########################################################
 # Define the variables
 #########################################################
 variable "name" {
   description = "Name of the Virtual Machine"
+  default     = "None"
+}
+
+variable "name_prefix" {
+  description = "Name prefix of the Virtual Machines in a cluster"
+  default     = "None"
 }
 
 variable "folder" {
@@ -66,8 +71,9 @@ variable "network_label" {
   description = "vSphere Port Group or Network label for Virtual Machine's vNIC"
 }
 
-variable "ipv4_address" {
-  description = "IPv4 address for vNIC configuration"
+variable "ipv4_addresses" {
+  type        = "list"
+  description = "IPv4 addresses for vNIC configuration"
 }
 
 variable "ipv4_gateway" {
@@ -116,19 +122,20 @@ variable "module_custom_commands" {
   description = "The extra commands needed after application installation"
   default     = "sleep 1"
 }
-variable "remove_camc_public_key" {
-  description = "The indicator to remove camc public key or not"
-  default     = "false"
+
+variable "count" {
+  default = 1
 }
 
 ##############################################################
-# Create Virtual Machine
+# Create Virtual Machines
 ##############################################################
 resource "vsphere_virtual_machine" "vm" {
-  name       = "${var.name}"
-  folder     = "${var.folder}"
-  datacenter = "${var.datacenter}"
-  vcpu       = "${var.vcpu}"
+  count        = "${var.count}"
+  name         = "${var.name_prefix == "None" ? var.name : format("${var.name_prefix}-%d", count.index+1)}"
+  folder       = "${var.folder}"
+  datacenter   = "${var.datacenter}"
+  vcpu         = "${var.vcpu}"
   memory       = "${var.memory}"
   cluster      = "${var.cluster}"
   dns_suffixes = ["${var.dns_suffix}"]
@@ -136,7 +143,7 @@ resource "vsphere_virtual_machine" "vm" {
   network_interface {
     label              = "${var.network_label}"
     ipv4_gateway       = "${var.ipv4_gateway}"
-    ipv4_address       = "${var.ipv4_address}"
+    ipv4_address       = "${var.ipv4_addresses[count.index]}"
     ipv4_prefix_length = "${var.ipv4_prefix_length}"
   }
   
@@ -163,7 +170,7 @@ resource "vsphere_virtual_machine" "vm" {
   provisioner "remote-exec" {
     inline = [
       "bash -c 'mkdir -p .ssh; if [ ! -f .ssh/authorized_keys ] ; then touch .ssh/authorized_keys; chmod 400 .ssh/authorized_keys;fi'",
-      "bash -c 'if [ \"${var.user_public_key}\" != \"None\" ] ; then chmod 600 .ssh/authorized_keys; if [ \"${var.remove_camc_public_key}\" == \"true\" ] ; then echo \"${var.user_public_key}\" | tee $HOME/.ssh/authorized_keys; else echo \"${var.user_public_key}\" | tee -a $HOME/.ssh/authorized_keys; fi; chmod 400 .ssh/authorized_keys; fi'",
+      "bash -c 'if [ \"${var.user_public_key}\" != \"None\" ] ; then chmod 600 .ssh/authorized_keys; echo \"${var.user_public_key}\" | tee -a $HOME/.ssh/authorized_keys; chmod 400 .ssh/authorized_keys; fi'",
       "${var.module_custom_commands}"
     ]
   }
@@ -173,5 +180,6 @@ resource "vsphere_virtual_machine" "vm" {
 # Output
 ##############################################################
 output "ip" {
-    value = "${vsphere_virtual_machine.vm.network_interface.0.ipv4_address}"    
+  value = "${join(",", vsphere_virtual_machine.vm.*.network_interface.0.ipv4_address)}"     
 }
+

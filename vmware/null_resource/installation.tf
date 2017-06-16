@@ -1,5 +1,5 @@
 ################################################################
-# Module to install extra services on exisitng VM
+# Module to install applications on exisitng VMs
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
