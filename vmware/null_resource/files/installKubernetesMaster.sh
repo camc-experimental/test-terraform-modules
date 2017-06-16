@@ -122,6 +122,13 @@ sed -i "s/# - --apiserver-host=http:\/\/my-address:port/- --apiserver-host=http:
 kubectl create -f kubernetes-dashboard.yaml --validate=false                                                                   >> $LOGFILE 2>&1 
 echo "---kubernetes master node installed successfully---" | tee -a $LOGFILE 2>&1
 
+#################################################################
+# Update firewalls
+#################################################################
+iptables -I INPUT 1 -p tcp -m tcp --dport 443 -m conntrack --ctstate NEW -j ACCEPT                                             >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
+iptables -I INPUT 2 -p tcp -m tcp --dport 2379 -m conntrack --ctstate NEW -j ACCEPT                                            >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
+iptables -I INPUT 2 -p tcp -m tcp --dport 8080 -m conntrack --ctstate NEW -j ACCEPT                                            >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
+
 
 #################################################################
 # reboot

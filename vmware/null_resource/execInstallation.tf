@@ -17,7 +17,9 @@ variable "ssh_user" {
   default = "root"
 }
 variable "camc_private_ssh_key" {}
-variable "remote_host" {}
+variable "remote_hosts" {
+  type    = "list" 
+}
 variable "module_script" {
   default = "files/default.sh"	
 }
@@ -32,13 +34,18 @@ variable "is_dependent_on"{
   default = false
 }
 
-resource "null_resource" "default"{
+variable "count" {
+  default = 1
+}
 
+resource "null_resource" "default"{
+  count        = "${var.count}"
+    
   # Specify the ssh connection
   connection {
     user        = "${var.ssh_user}"
     private_key = "${base64decode(var.camc_private_ssh_key)}"
-    host        = "${var.remote_host}"
+    host        = "${var.remote_hosts[count.index]}"
   }
   
   # Create the installation script
@@ -54,8 +61,7 @@ resource "null_resource" "default"{
       "bash installation.sh ${var.module_script_variables}",    
       "${var.module_custom_commands}"
     ]
-  }
-  
+  } 
 }
 
 resource "random_id" "default" {
