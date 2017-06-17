@@ -50,7 +50,7 @@ if [ "$NEED_CREATE_USER" == "true" ]; then
 	echo "---start configuring mongodb---" | tee -a $LOGFILE 2>&1 
 		
 	#create mongodb user and allow external access
-	sleep 10
+	sleep 30
 	mongo admin --eval "db.createUser({user: \"sampleUser\", pwd: \"$DBUserPwd\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})"    >> $LOGFILE 2>&1 || { echo "---Failed to create MongoDB user---" | tee -a $LOGFILE; exit 1; }
 	service mongod restart                                                                                                                       >> $LOGFILE 2>&1 || { echo "---Failed to restart mongod---" | tee -a $LOGFILE; exit 1; }
 
