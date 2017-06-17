@@ -384,6 +384,9 @@ else
 fi
 
 #update firewall
-iptables -I INPUT 1 -p tcp -m tcp --dport 8080 -m conntrack --ctstate NEW -j ACCEPT     >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
+if hash iptables 2>/dev/null; then
+	iptables -I INPUT 1 -p tcp -m tcp --dport 8080 -m conntrack --ctstate NEW -j ACCEPT     >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }   
+fi
+
 
 echo "---finish installing sample application---" | tee -a $LOGFILE 2>&1 		
