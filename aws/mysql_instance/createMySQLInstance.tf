@@ -38,6 +38,7 @@ resource "aws_db_instance" "mysql" {
   availability_zone	     = "${var.db_default_az}"
   publicly_accessible    = true
   vpc_security_group_ids = ["${var.db_security_group_id}"]
+  skip_final_snapshot    = true
 }
 
 output "mysql_address" {
