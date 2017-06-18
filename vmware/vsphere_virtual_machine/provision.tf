@@ -108,21 +108,6 @@ variable "user_public_key" {
   default     = "None"
 }
 
-variable "module_script" {
-  description = "The script to install applications"  
-  default     = "files/default.sh"	
-}
-
-variable "module_script_variables" {
-  description = "The variables for script to install applications"
-  default     = ""
-}
-
-variable "module_custom_commands" {
-  description = "The extra commands needed after application installation"
-  default     = "sleep 1"
-}
-
 variable "count" {
   default = 1
 }
@@ -158,12 +143,6 @@ resource "vsphere_virtual_machine" "vm" {
     user        = "${var.ssh_user}"
     private_key = "${base64decode(var.camc_private_ssh_key)}"
     host        = "${self.network_interface.0.ipv4_address}"
-  }
-
-  # Create the installation script
-  provisioner "file" {
-    source      = "${path.module}/${var.module_script}"
-    destination = "installation.sh"
   }
 
   # Execute the script remotely
