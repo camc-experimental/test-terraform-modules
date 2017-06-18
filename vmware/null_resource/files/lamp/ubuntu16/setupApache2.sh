@@ -22,9 +22,10 @@ LOGFILE="/var/log/installApache2.log"
 PUBLIC_MYSQL_DNS=$1
 MYSQL_USER=$2
 MYSQL_PWD=$3
-ARTIFACT_REPO=$4
+PUBLIC_DNS=$4
+ARTIFACT_REPO=$5
 
-PUBLIC_DNS=$(dig +short myip.opendns.com @resolver1.opendns.com)
+#PUBLIC_DNS=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
 echo "---install curl---" | tee -a $LOGFILE 2>&1
 apt-get install -y curl                                               >> $LOGFILE 2>&1 || { echo "---Failed to install curl---" | tee -a $LOGFILE; exit 1; }
