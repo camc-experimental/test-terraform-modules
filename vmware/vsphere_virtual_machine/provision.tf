@@ -108,6 +108,11 @@ variable "user_public_key" {
   default     = "None"
 }
 
+variable "module_custom_commands" {
+  description = "The extra commands needed"
+  default     = "sleep 1"
+}
+
 variable "count" {
   default = 1
 }
