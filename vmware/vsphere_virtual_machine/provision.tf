@@ -59,12 +59,10 @@ variable "dns_suffix" {
 
 variable "primary_dns_server" {
   description = "Primary DNS server for the virtual network adapter"
-  default     = "8.8.8.8"
 }
 
 variable "secondary_dns_server" {
   description = "Secondary DNS server for the virtual network adapter"
-  default     = "8.8.4.4"
 }
 
 variable "network_label" {
