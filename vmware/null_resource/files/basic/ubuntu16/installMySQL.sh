@@ -44,6 +44,8 @@ EOF
 mysql -e "CREATE USER '${USER}'@'${HOST}' IDENTIFIED BY '${PASSWORD}'; GRANT ALL PRIVILEGES ON * . * TO '${USER}'@'${HOST}'; FLUSH PRIVILEGES;"  >> $LOGFILE 2>&1 || { echo "---Failed to add user---" | tee -a $LOGFILE; exit 1; }
 
 sed -i 's/127\.0\.0\.1/0\.0\.0\.0/g' /etc/mysql/mysql.conf.d/mysqld.cnf                                 >> $LOGFILE 2>&1 || { echo "---Failed to update conf---" | tee -a $LOGFILE; exit 1; }
+service mysql restart                                                                                   >> $LOGFILE 2>&1 || { echo "---Failed to restart mysql---" | tee -a $LOGFILE; exit 1; }
+
 ufw allow from $HOST to any port 3306                                                                   >> $LOGFILE 2>&1 || { echo "---Failed to update firewall---" | tee -a $LOGFILE; exit 1; }
 
 echo "---finish installing mysql---" | tee -a $LOGFILE 2>&1
