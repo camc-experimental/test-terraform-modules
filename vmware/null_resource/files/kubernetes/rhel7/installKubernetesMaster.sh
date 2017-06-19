@@ -39,7 +39,7 @@ echo "---start installing kubernetes master node on $MYHOSTNAME---" | tee -a $LO
 #################################################################
 # install packages
 #################################################################
-#subscription-manager repos --enable=rhel-7-server-extras-rpms         >> $LOGFILE 2>&1 || { echo "---Add rhel-7-server-extras-rpms repo---" | tee -a $LOGFILE; exit 1; }
+subscription-manager repos --enable=rhel-7-server-extras-rpms         >> $LOGFILE 2>&1 || { echo "---Add rhel-7-server-extras-rpms repo---" | tee -a $LOGFILE; exit 1; }
 systemctl disable firewalld                                           >> $LOGFILE 2>&1 || { echo "---Failed to disable firewall---" | tee -a $LOGFILE; exit 1; }
 systemctl stop firewalld                                              >> $LOGFILE 2>&1 || { echo "---Failed to stop firewall---" | tee -a $LOGFILE; exit 1; }
 sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config   >> $LOGFILE 2>&1 || { echo "---Failed to config selinux---" | tee -a $LOGFILE; exit 1; }
